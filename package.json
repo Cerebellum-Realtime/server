@@ -17,8 +17,6 @@
     "@aws-sdk/client-dynamodb": "^3.609.0",
     "@aws-sdk/client-sqs": "^3.609.0",
     "@aws-sdk/lib-dynamodb": "^3.610.0",
-    "@socket.io/redis-adapter": "^8.3.0",
-    "@socket.io/redis-emitter": "^5.1.0",
     "@socket.io/redis-streams-adapter": "^0.2.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",

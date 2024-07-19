@@ -1,49 +1,51 @@
-import { Server, Socket } from "socket.io";
+import { Socket } from "socket.io";
 import { DB } from "../utils/db";
-
 const db = new DB();
-export const registerSubscriptionHandlers = (io: Server, socket: Socket) => {
-  const subscribe = async (channel: string, callback: Function) => {
+
+export const registerSubscriptionHandlers = (socket: Socket) => {
+  const subscribe = async (
+    channelName: string,
+    callback: Function,
+    limit?: number,
+    sortDirection?: "ascending" | "descending"
+  ) => {
     try {
       const result = await Promise.all([
-        socket.join(channel),
-        db.addChannel(channel),
+        socket.join(channelName),
+        db.channelExists(channelName),
       ]);
-      const channelId = result[1];
 
-      const pastMessages = await db.getAllMessagesForChannel(channelId);
+      const { contents, lastEvaluatedKey } =
+        await db.getMessagesForChannelPaginated(
+          channelName,
+          limit,
+          sortDirection
+        );
 
-      if (typeof callback === "function") {
-        callback({
-          success: true,
-          message: `Successfully subscribed to ${channel}`,
-          channelId,
-          pastMessages,
-        });
-      }
+      callback({
+        success: true,
+        pastMessages: contents,
+        lastEvaluatedKey,
+      });
     } catch (error) {
-      console.error(`Failed to subscribe to ${channel}:`, error);
-      if (typeof callback === "function") {
-        callback({
-          success: false,
-          message: `Failed to subscribe to ${channel}`,
-        });
-      }
+      console.error(`Failed to subscribe to ${channelName}:`, error);
+      callback({
+        success: false,
+      });
     }
   };
 
-  const unsubscribe = async (channel: string, callback: Function) => {
-    console.log(channel, "this is a channel");
+  const unsubscribe = async (channelName: string, callback: Function) => {
     try {
-      await socket.leave(channel);
-      if (typeof callback === "function") {
-        callback({
-          success: true,
-          message: "You have left the channel",
-        });
-      }
+      await socket.leave(channelName);
+      callback({
+        success: true,
+      });
     } catch (error) {
-      console.error(`Failed to unsubscribe from ${channel}:`, error);
+      console.error(`Failed to unsubscribe from ${channelName}:`, error);
+      callback({
+        success: false,
+      });
     }
   };
 

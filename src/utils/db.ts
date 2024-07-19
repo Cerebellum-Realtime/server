@@ -1,23 +1,22 @@
 import { v4 as uuidv4 } from "uuid";
 import { Channel } from "../models/channel";
 import { Message } from "../models/message";
+import { Message as MessageType } from "../types/Message";
 
 export class DB {
-  async addChannel(channelName: string): Promise<string> {
+  async channelExists(channelName: string): Promise<void> {
+    const existingChannel = await this.getChannel(channelName);
+
+    if (!existingChannel) await this.addChannel(channelName);
+  }
+
+  async addChannel(channelName: string): Promise<void> {
     try {
-      const existingChannel = await this.getChannel(channelName);
+      const newChannel = new Channel({
+        channelName: channelName,
+      });
 
-      if (existingChannel) {
-        return existingChannel.channelId;
-      } else {
-        const newChannel = new Channel({
-          channelId: uuidv4(),
-          channelName: channelName,
-        });
-
-        await newChannel.save();
-        return newChannel.channelId;
-      }
+      await newChannel.save();
     } catch (error) {
       console.error("Error adding channel:", error);
       throw error;
@@ -33,11 +32,12 @@ export class DB {
     }
   }
 
-  async saveMessage(channelId: string, content: string) {
+  async saveMessage(channelName: string, content: string, createdAt: string) {
     try {
       const newMessage = new Message({
-        channelId: channelId,
-        content: content,
+        channelName,
+        content,
+        createdAt,
       });
 
       await newMessage.save();
@@ -47,27 +47,17 @@ export class DB {
     }
   }
 
-  async getAllMessagesForChannel(channelId: string) {
-    try {
-      const messages = await Message.query("channelId").eq(channelId).exec();
-
-      const contents = messages.map((message) => message.content);
-      return contents;
-    } catch (error) {
-      console.error("Error retrieving messages for channel:", error);
-      throw error;
-    }
-  }
-
   async getMessagesForChannelPaginated(
-    channelId: string,
+    channelName: string,
     limit: number = 50,
-    lastEvaluatedKey?: any
+    sortDirection: "ascending" | "descending" = "ascending",
+    lastEvaluatedKey?: MessageType
   ) {
     try {
-      let query = Message.query("channelId")
-        .eq(channelId)
-        .sort("descending")
+      let query = Message.query("channelName")
+        .eq(channelName)
+        .using("createdAtIndex")
+        .sort(sortDirection)
         .limit(limit);
 
       if (lastEvaluatedKey) {
@@ -75,28 +65,39 @@ export class DB {
       }
 
       const result = await query.exec();
+      const contents = result.map((message) => {
+        return {
+          content: message.content,
+          createdAt: message.createdAt,
+        };
+      });
 
-      const contents = result.map((message) => message.content);
-
-      return {
-        messages: contents,
-        lastEvaluatedKey: result.lastKey,
-      };
+      return { contents, lastEvaluatedKey: result.lastKey };
     } catch (error) {
       console.error("Error fetching messages:", error);
       throw error;
     }
   }
 
-  async scanTable(tableName: string) {
+  async getAllMessagesForChannel(channelName: string) {
+    console.log(channelName);
     try {
-      const items = await Channel.scan().exec();
+      const result = await Message.query("channelName")
+        .eq(channelName)
+        .using("createdAtIndex")
+        .sort("ascending")
+        .exec();
 
-      const result = await items.populate();
-      console.log("Scanned Items:", result);
-      return items;
+      const contents = result.map((message) => {
+        return {
+          content: message.content,
+          createdAt: message.createdAt,
+        };
+      });
+
+      return { contents, lastEvaluatedKey: result.lastKey };
     } catch (error) {
-      console.error("An error occurred scanning the table:", error);
+      console.error("Error retrieving messages for channel:", error);
       throw error;
     }
   }

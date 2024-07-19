@@ -12,16 +12,3 @@ services:
     container_name: dynamodb-local
     ports:
       - "8001:8000"
-
-  # app:
-  #   build:
-  #     context: ./server
-  #     dockerfile: Dockerfile
-  #   container_name: my-app
-  #   ports:
-  #     - "8000:8000"
-  #   depends_on:
-  #     - redis
-  #   environment:
-  #     - REDIS_ENDPOINT_ADDRESS=redis
-  #     - REDIS_ENDPOINT_PORT=6379

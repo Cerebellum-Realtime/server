@@ -1,5 +1,5 @@
 import { Redis } from "ioredis";
-import { redisClient } from "../config/redis";
+import { redisStreamsClient } from "../config/redis";
 import {
   createChannelKey,
   createChannelUserKey,
@@ -15,7 +15,7 @@ export class ChannelPresenceManager {
   private redis: Redis;
 
   constructor() {
-    this.redis = redisClient;
+    this.redis = redisStreamsClient;
   }
 
   async addUserToChannel(

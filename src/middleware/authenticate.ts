@@ -16,7 +16,6 @@ const isValid = (socket: Socket) => {
     return false;
   }
 
-  console.log("Decoded token: ", decodedToken);
   return true;
 };
 
