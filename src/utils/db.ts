@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
 import { Channel } from "../models/channel";
 import { Message } from "../models/message";
 import { Message as MessageType } from "../types/Message";
