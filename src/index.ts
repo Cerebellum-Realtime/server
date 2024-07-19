@@ -35,7 +35,7 @@ const onConnection = (socket: Socket) => {
   registerPresenceHandlers(io, socket);
   registerDisconnection(socket);
 };
-
+console.log(process.env);
 io.use(authenticate);
 
 io.on("connection", (socket: Socket) => {
