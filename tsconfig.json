@@ -108,15 +108,6 @@
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
     "skipLibCheck": true /* Skip type checking all .d.ts files. */
   },
-  "include": [
-    "src",
-    "vitest.config.mts",
-    "setup/dynamo.ts",
-    "../dynamoooooose.ts",
-    "setup/createTables.ts",
-    "zfiles/dynamodb.ts",
-    "setup/dynamodb.ts",
-    "../index.ts"
-  ],
+  "include": ["src", "vitest.config.mts", "../index.ts"],
   "exclude": ["node_modules", "dist/**/*"]
 }

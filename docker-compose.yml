@@ -11,4 +11,4 @@ services:
     image: amazon/dynamodb-local
     container_name: dynamodb-local
     ports:
-      - "8001:8000"
+      - "8000:8000"
