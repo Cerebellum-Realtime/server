@@ -1,55 +1,61 @@
-# TypeScript x Express x Node.js
+- Server
 
-This is a boilerplate for the TypeScript + Express app.
+  - Extract out the server code from sample
+  - Option 1
+    - we make a nice docker image, that the cli can automatically pull in for the cdk
+  - Option 2
+    - We can do a package thing like vite, or ekko
+    - Where you can extend yourself if needed
+    - create a script to dockerize and upload to aws for deployment
+    - They would have to provide the docker image to cdk deployment
 
-## Prerequisites
+- Server repo with default image
+- Or dev can pull down, extend, create own image
+- Stretch -> `npm create Cerebellum` similar to Vite
+  - one development image
+    - on the client side, in our installer, we could drop a dockerCompose
+    - This would include the dev image, redis, and dynamo
+- Generate the API key on cdk deployment
 
-Before you begin, ensure you have the following installed on your machine:
+  - This API Key is injected into the containers, and used to decode tokens as the secret
 
-- [Node.js](https://nodejs.org/): Ensure that Node.js, preferably version 16 or higher, is installed on your system, as this project utilizes the latest versions of TypeScript and Nodemon.
-- [npm](https://www.npmjs.com/): npm is the package manager for Node.js and comes with the Node.js installation.
+- A developer can use the Cerebellum class to generate A Token signed by the API Key
+  - They would be responsible for proving a route that would generate the signed token,
+  - and we would ping that route on the front end with our package
 
-## Installation
+Future-Work:
 
-```
-git clone https://github.com/SrdjanCoric/ts-express-boilerplate
-```
+- create module File for socket handlers(think about it)
 
-```
-cd ts-express-boilerplate/
-```
+Past Messages:
 
-Install the project dependencies including TypeScript and Nodemon:
+- returns an array of objects now.
+- [
+  {
+  content: String,
+  createAt: String
+  }
+  ]
 
-```
-npm i
-```
+# Stuff to change on the front-end
 
-## Usage
+## We need to redo the front-end queries to use chanelName instead of channelId
 
-For development purposes, you can run the application using Nodemon to automatically restart the server when changes are detected. Execute the following command:
+- pagination on the backend
+  - We need to update FrontEnd to handle result.lastKey
+  - We need to let CDK Team Know, to update tables in the cdk
 
-```
-npm run dev
-```
+# Stuff to let Austin and Avery know, CDK Team
 
-This will start the server at `http://localhost:5001` by default. You can change the port in the `src/index.ts` file or create an `.env` file to manage the environment-specific variables separately.
+- We updated message Table Schema
 
-For production, you can build the TypeScript files and then start the server. Run the following commands:
+  - messageIdCreated => messageId
 
-```
-npm run build
-npm start
-```
+- We can change this for them if needed, in the cdk creation
+- Channels Table
 
-## Project Structure
+  - ChannelName is the Hash(Parition Key)
+  - WE need to update all the queries on the cdk and lambdas
+  - we need to update the channels
 
-The project structure is organized as follows:
-
-- `src`: Contains TypeScript source files
-  - `index.ts`: Configures and starts the Express application
-- `dist`: Output directory created during build for compiled TypeScript files
-- `package.json`: Project configuration and dependencies
-- `tsconfig.json`: TypeScript configuration
-
-You can customize the project configuration in the `tsconfig.json` file and adjust the server settings in the `src/index.ts` file.
+- clean up package json remove stuff we're not using

@@ -14,9 +14,6 @@ interface PresenceCallback {
 export const registerPresenceHandlers = (io: Server, socket: Socket) => {
   const enterPresenceSet = async (channelName: string, userInfo: UserInfo) => {
     try {
-      console.log(
-        `[${socket.id}] Entering presence set for channel: ${channelName}`
-      );
       const userPresence = await presenceManager.addUserToChannel(
         channelName,
         socket.id,
@@ -27,9 +24,6 @@ export const registerPresenceHandlers = (io: Server, socket: Socket) => {
         `presence:${channelName}:join`,
         userPresence
       );
-      console.log(
-        `[${socket.id}] Successfully entered presence set for channel: ${channelName}`
-      );
     } catch (error) {
       console.error(`[${socket.id}] Error entering presence set:`, error);
     }
@@ -37,16 +31,10 @@ export const registerPresenceHandlers = (io: Server, socket: Socket) => {
 
   const leavePresenceSet = async (channelName: string) => {
     try {
-      console.log(
-        `[${socket.id}] Leaving presence set for channel: ${channelName}`
-      );
       await presenceManager.removeUserFromChannel(channelName, socket.id);
       io.to(`presence:${channelName}`).emit(
         `presence:${channelName}:leave`,
         socket.id
-      );
-      console.log(
-        `[${socket.id}] Successfully left presence set for channel: ${channelName}`
       );
     } catch (error) {
       console.error(`[${socket.id}] Error leaving presence set:`, error);
@@ -58,17 +46,11 @@ export const registerPresenceHandlers = (io: Server, socket: Socket) => {
     callback: PresenceCallback
   ) => {
     try {
-      console.log(
-        `[${socket.id}] Subscribing to presence set for channel: ${channelName}`
-      );
       await socket.join(`presence:${channelName}`);
       const users = await presenceManager.getAllUsersInChannel(channelName);
+
       callback({ success: true, users });
-      console.log(
-        `[${socket.id}] Successfully subscribed to presence set for channel: ${channelName}`
-      );
     } catch (error) {
-      console.error(`[${socket.id}] Error subscribing to presence set:`, error);
       if (error instanceof Error) {
         callback({ success: false, error });
       } else {
@@ -79,13 +61,7 @@ export const registerPresenceHandlers = (io: Server, socket: Socket) => {
 
   const unSubscribePresenceSet = async (channelName: string) => {
     try {
-      console.log(
-        `[${socket.id}] Unsubscribing from presence set for channel: ${channelName}`
-      );
       await socket.leave(`presence:${channelName}`);
-      console.log(
-        `[${socket.id}] Successfully unsubscribed from presence set for channel: ${channelName}`
-      );
     } catch (error) {
       console.error(
         `[${socket.id}] Error unsubscribing from presence set:`,
@@ -99,9 +75,6 @@ export const registerPresenceHandlers = (io: Server, socket: Socket) => {
     updatedUserInfo: UserInfo
   ) => {
     try {
-      console.log(
-        `[${socket.id}] Updating user info in channel: ${channelName}`
-      );
       const result = await presenceManager.updateUserInfo(
         socket.id,
         channelName,
@@ -112,9 +85,6 @@ export const registerPresenceHandlers = (io: Server, socket: Socket) => {
         `presence:${channelName}:update`,
         result
       );
-      console.log(
-        `[${socket.id}] Successfully updated user info in channel: ${channelName}`
-      );
     } catch (error) {
       console.error(`[${socket.id}] Error updating user info:`, error);
     }
@@ -122,7 +92,6 @@ export const registerPresenceHandlers = (io: Server, socket: Socket) => {
 
   const handlePresenceDisconnection = async () => {
     try {
-      console.log(`[${socket.id}] Handling presence disconnection`);
       const channels = await presenceManager.getUserChannels(socket.id);
       await presenceManager.removeUserFromAllChannels(socket.id);
       for (const channelName of channels) {
@@ -131,7 +100,6 @@ export const registerPresenceHandlers = (io: Server, socket: Socket) => {
           socket.id
         );
       }
-      console.log(`[${socket.id}] Successfully handled presence disconnection`);
     } catch (error) {
       console.error(
         `[${socket.id}] Error handling presence disconnection:`,
