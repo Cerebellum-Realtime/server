@@ -4,7 +4,6 @@ import {
   createChannelKey,
   createChannelUserKey,
   createUserChannelsKey,
-  createContainerUserKey,
 } from "./redisKeys";
 
 interface UserInfo {
@@ -24,9 +23,8 @@ export class ChannelPresenceManager {
     userInfo: UserInfo
   ): Promise<UserInfo> {
     const multi = this.redis.multi();
-    const userInfoWithSocketId = { ...userInfo, socketId }; // Add socketId to userInfo
+    const userInfoWithSocketId = { ...userInfo, socketId };
 
-    // Convert all values to strings
     const userInfoWithStrings = Object.fromEntries(
       Object.entries(userInfoWithSocketId).map(([key, value]) => [
         key,
@@ -37,11 +35,10 @@ export class ChannelPresenceManager {
     const channelKey = createChannelKey(channelName);
     const userKey = createChannelUserKey(channelName, socketId);
     const userChannelsKey = createUserChannelsKey(socketId);
-    const containerKey = createContainerUserKey();
+
     multi.sadd(channelKey, socketId);
     multi.hmset(userKey, userInfoWithStrings);
     multi.sadd(userChannelsKey, channelName);
-    multi.sadd(containerKey, socketId);
     await multi.exec();
 
     return userInfoWithStrings;
@@ -78,11 +75,10 @@ export class ChannelPresenceManager {
     if (result === null) return [];
 
     const users = result.map(([err, userInfo]) => {
-      if (err || !userInfo) return null;
       return userInfo as UserInfo;
     });
 
-    return users.filter((user) => user !== null);
+    return users;
   }
 
   async updateUserInfo(
@@ -120,35 +116,8 @@ export class ChannelPresenceManager {
     }
 
     const userChannelsKey = createUserChannelsKey(socketId);
-    const containerUserKey = createContainerUserKey();
 
     multi.del(userChannelsKey);
-    multi.srem(containerUserKey, socketId);
-    await multi.exec();
-  }
-
-  async removeAllUsersFromContainer(): Promise<void> {
-    const containerKey = createContainerUserKey();
-    const containerMembers = await this.redis.smembers(containerKey);
-
-    const multi = this.redis.multi();
-
-    for (const socketId of containerMembers) {
-      const channels = await this.getUserChannels(socketId);
-
-      for (const channel of channels) {
-        const channelKey = createChannelKey(channel);
-        const userKey = createChannelUserKey(channel, socketId);
-        multi.srem(channelKey, socketId);
-        multi.del(userKey);
-      }
-
-      const userChannelsKey = createUserChannelsKey(socketId);
-      multi.del(userChannelsKey);
-    }
-
-    multi.del(containerKey);
-
     await multi.exec();
   }
 }

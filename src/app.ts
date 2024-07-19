@@ -15,6 +15,9 @@ app.use(
 app.use(express.json());
 
 app.use("/", healthCheck);
-app.use("/login", login); // Dev would provide this route to generate single use token for connection
+
+if (process.env.NODE_ENV === "development") {
+  app.use("/login", login);
+}
 
 export default app;
