@@ -1,29 +1,16 @@
 import { Server, Socket } from "socket.io";
-// import { DB } from "../utils/db";
-import { sendMessageToQueue } from "../utils/queue";
-
-// import
-
-// const db = new DB();
+import { handleSendMessageToQueue } from "../utils/queue";
 
 export const registerQueueHandlers = (io: Server, socket: Socket) => {
-  const sendMessage = async (
-    channelId: string,
-    channelName: string,
-    message: string
-  ) => {
+  const sendMessage = async (channelName: string, message: string) => {
     try {
-      const sendDescription = "sent thru queue";
+      const createdAt = new Date().toISOString();
 
-      // TODO: send thru queue instead...
-      // await db.saveMessage(channelId, message);
+      handleSendMessageToQueue(channelName, message, createdAt);
 
-      sendMessageToQueue(channelId, message, sendDescription);
-      // Still publish to user to maintain highest availability
       io.to(channelName).emit(`message:receive:${channelName}`, {
-        channelName,
-        message,
-        sendDescription,
+        createdAt,
+        content: message,
       });
       console.log(`Sending message to channel ${channelName}:`, message);
     } catch (error) {

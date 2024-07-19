@@ -11,6 +11,7 @@ app.use(
     methods: ["GET", "POST"],
   })
 );
+
 app.use(express.json());
 
 app.use("/", healthCheck);

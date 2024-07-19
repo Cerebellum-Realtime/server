@@ -1,27 +1,21 @@
 import * as dynamoose from "dynamoose";
-import { Item } from "dynamoose/dist/Item";
 import { v4 as uuidv4 } from "uuid";
+import dotenv from "dotenv";
+import { Message as MessageType } from "../types/Message";
+dotenv.config();
 
-interface Message extends Item {
-  channelId: string;
-  createdAt_messageId: string;
-  content: string;
-  createdAt: string;
-}
-
-// Define the schema
 const messageSchema = new dynamoose.Schema({
-  channelId: {
+  channelName: {
     type: String,
     hashKey: true,
+    required: true,
   },
-  createdAt_messageId: {
+
+  messageId: {
     type: String,
     rangeKey: true,
     default: () => {
-      const now = new Date();
-      const uniqueId = uuidv4();
-      return `${now.toISOString().padStart(20, "0")}_${uniqueId}`;
+      return uuidv4();
     },
   },
   content: {
@@ -30,6 +24,10 @@ const messageSchema = new dynamoose.Schema({
   },
   createdAt: {
     type: String,
+    index: {
+      name: "createdAtIndex",
+      type: "local",
+    },
     required: true,
     default: () => {
       const now = new Date();
@@ -39,4 +37,7 @@ const messageSchema = new dynamoose.Schema({
 });
 
 // Define the Message model
-export const Message = dynamoose.model<Message>("messages", messageSchema);
+export const Message = dynamoose.model<MessageType>(
+  process.env.DYNAMODB_MESSAGES_TABLE_NAME || "messages",
+  messageSchema
+);

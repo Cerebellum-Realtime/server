@@ -20,7 +20,6 @@ login.post("/", (req: Request, res: Response) => {
   // Dev using Cerebellum validates user credentials and calls `createTokenRequest` if valid
   const token = cerebellum.createToken({ username }); // Create signed token w/ payload as user & secret as API key
 
-  console.log("signed token: ", token);
   return res.status(200).send(token);
 });
 

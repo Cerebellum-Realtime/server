@@ -10,13 +10,13 @@ const redisConfig = {
   port: redisPort,
 };
 
-export const pub = new Redis(redisConfig)
+export const redisStreamsClient = new Redis(redisConfig)
   .on("ready", () => console.log("Publisher client is ready"))
   .on("error", (error) => {
     console.error("Publisher Redis client error:", error);
   });
 
-export const redisClient = new Redis(redisConfig)
+export const presenceRedisClient = new Redis(redisConfig)
   .on("ready", () => console.log("redisClient Ready"))
   .on("error", (error) => {
     console.error("Redis client error:", error);
@@ -24,8 +24,7 @@ export const redisClient = new Redis(redisConfig)
 
 if (process.env.NODE_ENV === "development") {
   (async function () {
-    await redisClient.flushdb();
+    await presenceRedisClient.flushdb();
     console.log("Redis database flushed successfully.");
   })();
 }
-//

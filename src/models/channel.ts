@@ -1,20 +1,17 @@
 import { Schema, model } from "dynamoose";
-import { Item } from "dynamoose/dist/Item";
-
-interface Channel extends Item {
-  channelName: string;
-  channelId: string;
-}
+import { Channel as ChannelType } from "../types/Channel";
+import dotenv from "dotenv";
+dotenv.config();
 
 export const channelSchema = new Schema({
   channelName: {
     type: String,
     hashKey: true,
-  },
-  channelId: {
-    type: String,
     required: true,
-  },
+  }
 });
 
-export const Channel = model<Channel>("channels", channelSchema);
+export const Channel = model<ChannelType>(
+  process.env.DYNAMODB_CHANNELS_TABLE_NAME || "channels",
+  channelSchema
+);
