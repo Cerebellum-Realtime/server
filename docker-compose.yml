@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  redis:
+    image: redis
+    container_name: my-redis
+    ports:
+      - "6379:6379"
+
+  dynamodb-local:
+    image: amazon/dynamodb-local
+    container_name: dynamodb-local
+    ports:
+      - "8001:8000"
+
+  # app:
+  #   build:
+  #     context: ./server
+  #     dockerfile: Dockerfile
+  #   container_name: my-app
+  #   ports:
+  #     - "8000:8000"
+  #   depends_on:
+  #     - redis
+  #   environment:
+  #     - REDIS_ENDPOINT_ADDRESS=redis
+  #     - REDIS_ENDPOINT_PORT=6379
