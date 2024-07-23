@@ -64,6 +64,10 @@ export class DB {
       }
 
       const result = await query.exec();
+      if (result.length === 0) {
+        return { contents: [], returnedLastEvaluatedKey: undefined };
+      }
+
       const contents = result.map((message) => {
         return {
           content: message.content,
@@ -71,7 +75,10 @@ export class DB {
         };
       });
 
-      return { contents, lastEvaluatedKey: result.lastKey };
+      return {
+        contents,
+        returnedLastEvaluatedKey: result.lastKey,
+      };
     } catch (error) {
       console.error("Error fetching messages:", error);
       throw error;

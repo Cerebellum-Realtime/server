@@ -38,7 +38,7 @@ export const registerPresenceHandlers = (io: Server, socket: Socket) => {
   ) => {
     try {
       const users = await presenceManager.getAllUsersInChannel(channelName);
-
+      console.log(users);
       callback({ success: true, users });
     } catch (error) {
       if (error instanceof Error) {
@@ -51,14 +51,15 @@ export const registerPresenceHandlers = (io: Server, socket: Socket) => {
 
   const leavePresenceSet = async (channelName: string) => {
     try {
-      await Promise.all([
-        socket.leave(`presence:${channelName}`),
+      const [userPresenceLeft] = await Promise.all([
         presenceManager.removeUserFromChannel(channelName, socket.id),
+
+        socket.leave(`presence:${channelName}`),
       ]);
 
       io.to(`presence:${channelName}`).emit(
         `presence:${channelName}:leave`,
-        socket.id
+        userPresenceLeft
       );
     } catch (error) {
       console.error(`[${socket.id}] Error leaving presence set:`, error);
