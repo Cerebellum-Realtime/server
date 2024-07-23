@@ -14,6 +14,8 @@ interface PresenceCallback {
 export const registerPresenceHandlers = (io: Server, socket: Socket) => {
   const enterPresenceSet = async (channelName: string, userInfo: UserInfo) => {
     try {
+      await socket.join(`presence:${channelName}`);
+
       const userPresence = await presenceManager.addUserToChannel(
         channelName,
         socket.id,
@@ -29,24 +31,12 @@ export const registerPresenceHandlers = (io: Server, socket: Socket) => {
     }
   };
 
-  const leavePresenceSet = async (channelName: string) => {
-    try {
-      await presenceManager.removeUserFromChannel(channelName, socket.id);
-      io.to(`presence:${channelName}`).emit(
-        `presence:${channelName}:leave`,
-        socket.id
-      );
-    } catch (error) {
-      console.error(`[${socket.id}] Error leaving presence set:`, error);
-    }
-  };
-
-  const subscribePresenceSet = async (
+  //subscribePresenceChannel
+  const getPresenceMembersForChannel = async (
     channelName: string,
     callback: PresenceCallback
   ) => {
     try {
-      await socket.join(`presence:${channelName}`);
       const users = await presenceManager.getAllUsersInChannel(channelName);
 
       callback({ success: true, users });
@@ -59,14 +49,19 @@ export const registerPresenceHandlers = (io: Server, socket: Socket) => {
     }
   };
 
-  const unSubscribePresenceSet = async (channelName: string) => {
+  const leavePresenceSet = async (channelName: string) => {
     try {
-      await socket.leave(`presence:${channelName}`);
-    } catch (error) {
-      console.error(
-        `[${socket.id}] Error unsubscribing from presence set:`,
-        error
+      await Promise.all([
+        socket.leave(`presence:${channelName}`),
+        presenceManager.removeUserFromChannel(channelName, socket.id),
+      ]);
+
+      io.to(`presence:${channelName}`).emit(
+        `presence:${channelName}:leave`,
+        socket.id
       );
+    } catch (error) {
+      console.error(`[${socket.id}] Error leaving presence set:`, error);
     }
   };
 
@@ -110,8 +105,7 @@ export const registerPresenceHandlers = (io: Server, socket: Socket) => {
 
   socket.on("presenceSet:enter", enterPresenceSet);
   socket.on("presenceSet:leave", leavePresenceSet);
-  socket.on("presence:subscribe", subscribePresenceSet);
-  socket.on("presence:unsubscribe", unSubscribePresenceSet);
+  socket.on("presence:members:get", getPresenceMembersForChannel);
   socket.on("presence:update", updateUserInfo);
   socket.on("disconnect", handlePresenceDisconnection);
 };
