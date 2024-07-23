@@ -13,6 +13,6 @@ RUN npm install -g typescript
 
 RUN npm run build
 
-EXPOSE 8000
+EXPOSE 8001
 
-CMD ["npm", "run", "start-dev"]
+CMD ["npm", "start"]
