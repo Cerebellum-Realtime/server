@@ -51,16 +51,14 @@ export const registerPresenceHandlers = (io: Server, socket: Socket) => {
 
   const leavePresenceSet = async (channelName: string) => {
     try {
-      const [userPresenceLeft] = await Promise.all([
+      await Promise.all([
         presenceManager.removeUserFromChannel(channelName, socket.id),
-
         socket.leave(`presence:${channelName}`),
       ]);
 
-      io.to(`presence:${channelName}`).emit(
-        `presence:${channelName}:leave`,
-        userPresenceLeft
-      );
+      io.to(`presence:${channelName}`).emit(`presence:${channelName}:leave`, {
+        socketId: socket.id,
+      });
     } catch (error) {
       console.error(`[${socket.id}] Error leaving presence set:`, error);
     }
@@ -89,12 +87,12 @@ export const registerPresenceHandlers = (io: Server, socket: Socket) => {
   const handlePresenceDisconnection = async () => {
     try {
       const channels = await presenceManager.getUserChannels(socket.id);
-      await presenceManager.removeUserFromAllChannels(socket.id);
+
+      await presenceManager.removeUserFromAllChannels(channels, socket.id);
       for (const channelName of channels) {
-        io.to(`presence:${channelName}`).emit(
-          `presence:${channelName}:leave`,
-          socket.id
-        );
+        io.to(`presence:${channelName}`).emit(`presence:${channelName}:leave`, {
+          socketId: socket.id,
+        });
       }
     } catch (error) {
       console.error(

@@ -47,19 +47,16 @@ export class ChannelPresenceManager {
   async removeUserFromChannel(
     channelName: string,
     socketId: string
-  ): Promise<UserInfo | null> {
+  ): Promise<void> {
     const channelKey = createChannelKey(channelName);
     const userKey = createChannelUserKey(channelName, socketId);
     const userChannelsKey = createUserChannelsKey(socketId);
-    const userData = await this.redis.hgetall(userKey);
     const multi = this.redis.multi();
 
     multi.srem(channelKey, socketId);
     multi.del(userKey);
     multi.srem(userChannelsKey, channelName);
     await multi.exec();
-
-    return userData;
   }
 
   async getAllUsersInChannel(channelName: string): Promise<UserInfo[]> {
@@ -107,8 +104,10 @@ export class ChannelPresenceManager {
     return await this.redis.smembers(userChannelsKey);
   }
 
-  async removeUserFromAllChannels(socketId: string): Promise<void> {
-    const channels = await this.getUserChannels(socketId);
+  async removeUserFromAllChannels(
+    channels: string[],
+    socketId: string
+  ): Promise<void> {
     const multi = this.redis.multi();
 
     for (const channel of channels) {
