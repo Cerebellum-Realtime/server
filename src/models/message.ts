@@ -19,7 +19,7 @@ const messageSchema = new dynamoose.Schema({
     },
   },
   content: {
-    type: String,
+    type: dynamoose.type.ANY,
     required: true,
   },
   createdAt: {
