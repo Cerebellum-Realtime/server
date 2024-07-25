@@ -22,7 +22,7 @@
     "dynamoose": "^4.0.1",
     "express": "^4.19.2",
     "ioredis": "^5.4.1",
-    "jsonwebtoken": "^9.0.2",
+    "jose": "^5.6.3",
     "socket.io": "^4.7.5",
     "uuid": "^10.0.0",
     "vitest": "^1.6.0"
