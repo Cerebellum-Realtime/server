@@ -39,7 +39,7 @@ describe("subscription handler", () => {
   });
 
   it("should subscribe to channels", () => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       clientSocket.emit("channel:subscribe", "test-channel", (ack) => {
         expect(ack.success).toBe(true);
         expect(serverSocket.rooms.has("test-channel")).toBe(true);
@@ -49,7 +49,7 @@ describe("subscription handler", () => {
   });
 
   it("should unsubscribe from channels", () => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       clientSocket.emit("channel:unsubscribe", "test-channel", (ack) => {
         expect(ack.success).toBe(true);
         expect(serverSocket.rooms.has("test-channel")).toBe(false);
