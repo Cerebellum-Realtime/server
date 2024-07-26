@@ -8,10 +8,12 @@ export const registerQueueHandlers = (io: Server, socket: Socket) => {
 
       handleSendMessageToQueue(channelName, message, createdAt);
 
-      socket.broadcast.to(channelName).emit(`message:receive:${channelName}`, {
+      io.to(channelName).emit(`message:receive:${channelName}`, {
         createdAt,
         content: message,
+        socketId: socket.id,
       });
+
       console.log(`Sending message to channel ${channelName}:`, message);
     } catch (error) {
       console.error(`Failed to send message to ${channelName}:`, error);
