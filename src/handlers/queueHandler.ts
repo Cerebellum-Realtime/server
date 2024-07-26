@@ -11,6 +11,7 @@ export const registerQueueHandlers = (io: Server, socket: Socket) => {
       io.to(channelName).emit(`message:receive:${channelName}`, {
         createdAt,
         content: message,
+        socketId: socket.id,
       });
 
       console.log(`Sending message to channel ${channelName}:`, message);

@@ -9,7 +9,8 @@
     "dev": "NODE_ENV=development nodemon src/index.ts",
     "test": "vitest",
     "createTable": "ts-node ./setup/createTables.ts",
-    "start-dev": "NODE_ENV=development node dist/src/index.js"
+    "start-dev": "NODE_ENV=development node dist/src/index.js",
+    "docker-push": "docker buildx build --platform linux/amd64,linux/arm64 -t willconrad/cerebellum:server --push ."
   },
   "keywords": [],
   "author": "",

@@ -2,7 +2,7 @@ import { jwtVerify } from "jose";
 import { Socket } from "socket.io";
 import { ExtendedError } from "socket.io/dist/namespace";
 
-const secret = process.env.API_KEY || "sample key";
+const secret = process.env.API_KEY || "SAMPLE_API_KEY";
 
 const isValid = async (socket: Socket): Promise<boolean> => {
   const token: string | undefined = socket.handshake.auth.token;

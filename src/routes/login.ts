@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import { SignJWT } from "jose";
 import dotenv from "dotenv";
 dotenv.config();
-const API_KEY = process.env.API_KEY || "sample key";
+const API_KEY = process.env.API_KEY || "SAMPLE_API_KEY";
 const login = express.Router();
 
 login.post("/", async (req: Request, res: Response) => {
