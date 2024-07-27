@@ -104,7 +104,7 @@ describe("presence handler", () => {
 
       setTimeout(() => {
         disconnectSocket.emit("presenceSet:leave", "test-channel");
-      }, 100);
+      }, 200);
     });
   });
 
@@ -153,7 +153,7 @@ describe("presence handler", () => {
 
       setTimeout(() => {
         disconnectSocket.disconnect();
-      }, 100);
+      }, 200);
     });
   });
 });

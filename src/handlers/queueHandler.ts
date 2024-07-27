@@ -7,7 +7,6 @@ export const registerQueueHandlers = (io: Server, socket: Socket) => {
       const createdAt = new Date().toISOString();
 
       handleSendMessageToQueue(channelName, message, createdAt);
-
       io.to(channelName).emit(`message:receive:${channelName}`, {
         createdAt,
         content: message,

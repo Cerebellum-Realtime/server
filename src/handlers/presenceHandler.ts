@@ -38,7 +38,6 @@ export const registerPresenceHandlers = (io: Server, socket: Socket) => {
   ) => {
     try {
       const users = await presenceManager.getAllUsersInChannel(channelName);
-      console.log(users);
       callback({ success: true, users });
     } catch (error) {
       if (error instanceof Error) {
@@ -87,7 +86,6 @@ export const registerPresenceHandlers = (io: Server, socket: Socket) => {
   const handlePresenceDisconnection = async () => {
     try {
       const channels = await presenceManager.getUserChannels(socket.id);
-
       await presenceManager.removeUserFromAllChannels(channels, socket.id);
       for (const channelName of channels) {
         io.to(`presence:${channelName}`).emit(`presence:${channelName}:leave`, {
