@@ -1,10 +1,9 @@
-import { beforeAll, afterAll, describe, it, expect } from "vitest";
+import { beforeAll, afterAll, describe, it, expect, beforeEach } from "vitest";
 import { createServer } from "node:http";
 import { io as ioc } from "socket.io-client";
 import { Server } from "socket.io";
 import { registerPresenceHandlers } from "../src/handlers/presenceHandler";
 import { ChannelPresenceManager } from "../src/utils/presence";
-import { beforeEach } from "node:test";
 
 vi.mock("../src/utils/presence", () => {
   return {
@@ -33,41 +32,58 @@ vi.mock("../src/utils/presence", () => {
 });
 
 describe("presence handler", () => {
-  let io, serverSocket, clientSocket, disconnectSocket;
+  let io, serverSocket, clientSocket, disconnectSocket, port;
 
   beforeAll(() => {
     return new Promise((resolve) => {
       const httpServer = createServer();
       io = new Server(httpServer);
       httpServer.listen(() => {
-        const port = httpServer.address().port;
-
-        clientSocket = ioc(`http://localhost:${port}`);
-        disconnectSocket = ioc(`http://localhost:${port}`);
+        port = httpServer.address().port;
 
         io.on("connection", (socket) => {
           registerPresenceHandlers(io, socket);
           serverSocket = socket;
         });
 
-        let connections = 0;
-        const checkCompletion = () => {
-          connections += 1;
-          if (connections === 2) {
-            resolve();
-          }
-        };
-
-        clientSocket.on("connect", checkCompletion);
-        disconnectSocket.on("connect", checkCompletion);
+        resolve();
       });
     });
+  });
+
+  beforeEach(() => {
+    return new Promise((resolve) => {
+      clientSocket = ioc(`http://localhost:${port}`);
+      disconnectSocket = ioc(`http://localhost:${port}`);
+
+      let connections = 0;
+      const checkCompletion = () => {
+        connections += 1;
+        if (connections === 2) {
+          resolve();
+        }
+      };
+
+      clientSocket.on("connect", checkCompletion);
+      disconnectSocket.on("connect", checkCompletion);
+    });
+  });
+
+  afterEach(() => {
+    clientSocket.disconnect();
+    clientSocket = undefined;
+    disconnectSocket.disconnect();
+    disconnectSocket = undefined;
+  });
+
+  afterAll(() => {
+    io.close();
   });
 
   it("should enter a presence set", () => {
     return new Promise((resolve) => {
       clientSocket.emit("presenceSet:enter", "test-channel", {
-        userName: "cerebellumUser", // This doesn't matter since we mocked return of addUserToChannel
+        userName: "cerebellumUser",
       });
 
       clientSocket.on("presence:test-channel:join", (data) => {
@@ -78,15 +94,17 @@ describe("presence handler", () => {
   });
 
   it("should leave a presence set", () => {
-    clientSocket.emit("presenceSet:enter", "test-channel");
-
     return new Promise((resolve) => {
+      clientSocket.emit("presenceSet:enter", "test-channel");
+
       clientSocket.on("presence:test-channel:leave", (data) => {
         expect(data).toEqual({ socketId: disconnectSocket.id });
         resolve();
       });
 
-      disconnectSocket.emit("presenceSet:leave", "test-channel");
+      setTimeout(() => {
+        disconnectSocket.emit("presenceSet:leave", "test-channel");
+      }, 100);
     });
   });
 
@@ -107,6 +125,7 @@ describe("presence handler", () => {
 
   it("should update a presence set", () => {
     return new Promise((resolve) => {
+      clientSocket.emit("presenceSet:enter", "test-channel");
       clientSocket.emit("presence:update", "test-channel", {
         username: "cerebellumUser3",
       });
@@ -132,7 +151,9 @@ describe("presence handler", () => {
         resolve();
       });
 
-      disconnectSocket.disconnect();
+      setTimeout(() => {
+        disconnectSocket.disconnect();
+      }, 100);
     });
   });
 });
