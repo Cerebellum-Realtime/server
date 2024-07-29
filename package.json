@@ -25,8 +25,7 @@
     "ioredis": "^5.4.1",
     "jose": "^5.6.3",
     "socket.io": "^4.7.5",
-    "uuid": "^10.0.0",
-    "vitest": "^1.6.0"
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
@@ -35,7 +34,9 @@
     "@types/node": "^20.14.9",
     "@types/uuid": "^10.0.0",
     "nodemon": "^3.1.0",
+    "socket.io-client": "^4.7.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.3",
+    "vitest": "^2.0.4"
   }
 }
