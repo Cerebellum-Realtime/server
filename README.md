@@ -1,65 +1,103 @@
-# server
+## Cerebellum Server
 
-# TypeScript x Express x Node.js
+This is the Cerebellum WebSocket server designed for realtime applications. The server runs on port **8001**.
 
-- Server
+## Getting Started
 
-  - Extract out the server code from sample
-  - Option 1
-    - we make a nice docker image, that the cli can automatically pull in for the cdk
-  - Option 2
-    - We can do a package thing like vite, or ekko
-    - Where you can extend yourself if needed
-    - create a script to dockerize and upload to aws for deployment
-    - They would have to provide the docker image to cdk deployment
+### Setting up your environment
 
-- Server repo with default image
-- Or dev can pull down, extend, create own image
-- Stretch -> `npm create Cerebellum` similar to Vite
-  - one development image
-    - on the client side, in our installer, we could drop a dockerCompose
-    - This would include the dev image, redis, and dynamo
-- Generate the API key on cdk deployment
+Clone the repo.
 
-  - This API Key is injected into the containers, and used to decode tokens as the secret
+Install node dependencies. `cd` into the project root and run `npm install`.
 
-- A developer can use the Cerebellum class to generate A Token signed by the API Key
-  - They would be responsible for proving a route that would generate the signed token,
-  - and we would ping that route on the front end with our package
+Create a `.env` file in the project root and then copy the content from `.env.example`. Fill out the values according to your local development environment.
 
-Future-Work:
+### Running a local development server
 
-- create module File for socket handlers(think about it)
+- Start running Docker locally.
+- `cd` into the project root and run:
 
-Past Messages:
+```
+docker compose up --detach
+npm run dev
+```
 
-- returns an array of objects now.
-- [
-  {
-  content: String,
-  createAt: String
-  }
-  ]
+- `docker compose up --detach` starts running local docker images of Redis and DynamoDB in the background.
+- `npm run dev` starts running a local instance of the Cerebellum WebSocket server on **port 8001**.
 
-# Stuff to change on the front-end
+### Running the server in production
 
-## We need to redo the front-end queries to use chanelName instead of channelId
+For production, this server is dockerized and its image is used in our AWS CDK infrastructure deployment.
 
-- pagination on the backend
-  - We need to update FrontEnd to handle result.lastKey
-  - We need to let CDK Team Know, to update tables in the cdk
+Note: While deploying the AWS infrastructure with the CDK, the environment variables needed for the server will be added automatically during deployment.
 
-# Stuff to let Austin and Avery know, CDK Team
+### Preparing for production
 
-- We updated message Table Schema
+To dockerize this image:
 
-  - messageIdCreated => messageId
+- Run `docker login` to make sure you are logged in to your Dockerhub account.
+- `cd` into the project root directory
+- Create a local Docker image
+  - `docker build -t <your-dockerhub-username>/<image-name>:<tag> .`
+- Push the Docker image to Dockerhub
+  - `docker push <your-dockerhub-username>/<image-name>:<tag>`
 
-- We can change this for them if needed, in the cdk creation
-- Channels Table
+### Placing server into production
 
-  - ChannelName is the Hash(Parition Key)
-  - WE need to update all the queries on the cdk and lambdas
-  - we need to update the channels
+To use this Docker image in production:
 
-- clean up package json remove stuff we're not using
+- Install Cerebellum's CLI package globally:
+  - `npm install --global @cerebellum/cli`
+- `cd` into a folder with no `.git` repo
+- Create the CDK infrastructure deployment folder by running:
+  - `cerebellum create`
+    - In the option asking if you want to use your server image, insert the Docker image just created.
+
+For deploying Cerebellum's CDK and more information about our [CLI](https://github.com/Cerebellum-Realtime/cli)
+
+## What's Included
+
+### Authentication
+
+Cerebellum's server implements a way to authenticate users before a WebSocket connection is established in order to protect the server. This gives our server protection from unwanted users connecting.
+
+Steps to authenticate:
+
+- Create an API key
+  - Checkout Cerebellum's [CLI](https://github.com/Cerebellum-Realtime/cli) for more information on deploying using Cerebellum
+- Place the API key into the server `.env` as `API_KEY=<your_api_key>`
+- Create a separate authentication server and give it the API key
+
+In practice, this is how authentication works:
+
+- A client attempts to login via a separate authentication server (not Cerebellum's server)
+- Once the clients' login is successful, the client is given a JWT token
+- The client then gives the JWT token to the Cerebellum server and the Cerebellum server authenticates the JWT token
+- Assuming the JWT token was built with the same secret, the user is granted permission to connect to the Cerebellum server via WebSocket
+
+### Scalable Realtime Communication
+
+To be able to handle high traffic usage, Cerebellum's server is designed to be easily scalable. To do this, we rely on a Redis cache that will act as a message facilitator between servers. This means that we can horizontally scale (i.e., add more servers) and have a way for all servers to communicate.
+
+### Persistent Data Storage Capability
+
+The Cerebellum server is designed to save realtime data to DynamoDB.
+
+- In development mode, data is written directly to a running docker instance of DynamoDB.
+- In production mode, the server is designed to send data to a queue.
+  - Note: An AWS Lambda function will use Dynamoose and send data to the database.
+
+### Connection State Recovery
+
+The Cerebellum server is designed to handle dropped connections re-connecting quickly and without re-authentication. We use Socket.io's built-in connection state recovery. The max re-connect timeframe is set to 120 seconds and skip the middleware (which skips authentication).
+
+### Realtime Presence
+
+The Cerebellum server is designed for realtime presence. This means that our server gives the capability for users to see realtime updates from other users in their channel. We utilize Redis streams by saving the presence of channels on the Redis temporarily. The server can then implement presence by:
+
+- adding a user to the channel's presence
+- removing a user from a channel's presence
+- getting all users from a channel's presence
+- updating a user's info in the channel's presence
+- getting all channels a user is present in
+- removing a user from all channel's presence
