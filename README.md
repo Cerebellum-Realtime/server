@@ -29,7 +29,7 @@ npm run dev
 
 ### Running the server in production
 
-For production, this server is dockerized and its' image is used in our AWS CDK infrastructure deployment.
+For production, this server is dockerized and its image is used in our AWS CDK infrastructure deployment.
 
 Note: While deploying the AWS infrastructure in the CDK, the environment variables needed in the server will be added automatically during deployment.
 
